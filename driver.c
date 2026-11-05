@@ -7,6 +7,27 @@
 
 #include <ntddk.h>
 #include <ntddmou.h>
+#if __has_include(<kbdmou.h>)
+#include <kbdmou.h>
+#else
+typedef struct _CONNECT_DATA {
+    IN PDEVICE_OBJECT ClassDeviceObject;
+    IN PVOID          ClassService;
+} CONNECT_DATA, *PCONNECT_DATA;
+
+typedef VOID (*PSERVICE_CALLBACK_ROUTINE)(
+    IN PVOID NormalContext,
+    IN PVOID SystemArgument1,
+    IN PVOID SystemArgument2,
+    IN OUT PVOID SystemArgument3
+);
+
+#define IOCTL_INTERNAL_MOUSE_CONNECT CTL_CODE(FILE_DEVICE_MOUSE, 0x0080, METHOD_BUFFERED, FILE_ANY_ACCESS)
+#endif
+
+#ifndef IOCTL_INTERNAL_MOUSE_CONNECT
+#define IOCTL_INTERNAL_MOUSE_CONNECT CTL_CODE(FILE_DEVICE_MOUSE, 0x0080, METHOD_BUFFERED, FILE_ANY_ACCESS)
+#endif
 
 #define IOCTL_MOUSE_CLICK CTL_CODE(FILE_DEVICE_UNKNOWN, 0x801, METHOD_BUFFERED, FILE_ANY_ACCESS)
 #define IOCTL_MOUSE_DOWN  CTL_CODE(FILE_DEVICE_UNKNOWN, 0x802, METHOD_BUFFERED, FILE_ANY_ACCESS)
@@ -41,7 +62,6 @@ VOID SendMousePacket(USHORT buttonFlags) {
 }
 
 NTSTATUS DispatchCreateClose(PDEVICE_OBJECT DeviceObject, PIRP Irp) {
-    
     if (DeviceObject != g_ControlDevice) {
         PDEVICE_EXTENSION ext = (PDEVICE_EXTENSION)DeviceObject->DeviceExtension;
         if (ext && ext->LowerDevice) {
@@ -228,3 +248,4 @@ NTSTATUS DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegistryPath) 
 
     return status;
 }
+
