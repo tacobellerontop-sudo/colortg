@@ -33,7 +33,7 @@ jobs:
 
       - name: Build Kernel Driver
         run: |
-          msbuild Driver.vcxproj /p:Configuration=Release /p:Platform=x64 /p:SignMode=Off /p:WindowsTargetPlatformVersion=10.0 /p:WindowsSDKInstalled=true
+          msbuild Driver.vcxproj /p:Configuration=Release /p:Platform=x64 /p:SignMode=Off /p:WindowsTargetPlatformVersion=10.0 /p:WindowsSDKInstalled=true /p:WindowsSDK_Desktop_Support=true
 
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
