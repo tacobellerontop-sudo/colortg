@@ -63,7 +63,7 @@ jobs:
           Write-Host "specstrings.h: $(Test-Path "$incSdkSh\specstrings.h") ($incSdkSh)"
           Write-Host "lib dir:       $(Test-Path "$libKm") ($libKm)"
 
-          cl /c /O2 /D_AMD64_ /D_WIN64 /DNDEBUG /D_KERNEL_MODE /GS- /W3 /Zl /kernel /nologo `
+          cl /c /O2 /D_AMD64_ /D_WIN64 /DNDEBUG /GS- /W3 /Zl /kernel /nologo `
             "-I$incKm" "-I$incKmCrt" "-I$incShared" "-I$incSdkSh" "-I$incUcrt" `
             driver.c /Fo:driver.obj
 
