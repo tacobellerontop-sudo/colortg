@@ -1,0 +1,45 @@
+name: Build Triggerbot & Driver
+
+on:
+  push:
+    branches: [ "**" ]
+  pull_request:
+    branches: [ "**" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Setup MSVC developer environment
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      - name: Restore WDK NuGet Packages
+        run: |
+          nuget restore packages.config -PackagesDirectory packages
+
+      - name: Build User-Mode Triggerbot (GUI)
+        run: |
+          cl /std:c++20 /O2 /EHsc trigger.cpp /link user32.lib gdi32.lib comctl32.lib /SUBSYSTEM:WINDOWS /ENTRY:WinMainCRTStartup /OUT:trigger.exe
+
+      - name: Build Kernel Driver
+        run: |
+          msbuild Driver.vcxproj /p:Configuration=Release /p:Platform=x64 /p:SignMode=Off /p:WindowsTargetPlatformVersion=10.0 /p:WindowsSDKInstalled=true
+
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-output
+          path: |
+            trigger.exe
+            x64/Release/Driver/Driver.sys
+          if-no-files-found: warn
