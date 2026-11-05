@@ -1,0 +1,12 @@
+<Project>
+  <PropertyGroup>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <WindowsSDKInstalled>true</WindowsSDKInstalled>
+    <SkipPackageVerification>true</SkipPackageVerification>
+    <SignMode>Off</SignMode>
+  </PropertyGroup>
+  <Import Project="$(MSBuildThisFileDirectory)packages\Microsoft.Windows.WDK.x64.*\build\native\Microsoft.Windows.WDK.x64.props" 
+          Condition="'$(Platform)' == 'x64'" />
+  <Import Project="$(MSBuildThisFileDirectory)packages\Microsoft.Windows.SDK.CPP.x64.*\build\native\Microsoft.Windows.SDK.cpp.x64.props" 
+          Condition="'$(Platform)' == 'x64'" />
+</Project>

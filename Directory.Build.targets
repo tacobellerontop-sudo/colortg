@@ -1,0 +1,4 @@
+<Project>
+  <Import Project="$(MSBuildThisFileDirectory)packages\Microsoft.Windows.WDK.x64.*\build\native\Microsoft.Windows.WDK.x64.targets" 
+          Condition="'$(Platform)' == 'x64'" />
+</Project>
