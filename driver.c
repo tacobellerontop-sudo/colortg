@@ -41,7 +41,14 @@ VOID SendMousePacket(USHORT buttonFlags) {
 }
 
 NTSTATUS DispatchCreateClose(PDEVICE_OBJECT DeviceObject, PIRP Irp) {
-    UNREFERENCED_PARAMETER(DeviceObject);
+    
+    if (DeviceObject != g_ControlDevice) {
+        PDEVICE_EXTENSION ext = (PDEVICE_EXTENSION)DeviceObject->DeviceExtension;
+        if (ext && ext->LowerDevice) {
+            IoSkipCurrentIrpStackLocation(Irp);
+            return IoCallDriver(ext->LowerDevice, Irp);
+        }
+    }
     Irp->IoStatus.Status = STATUS_SUCCESS;
     Irp->IoStatus.Information = 0;
     IoCompleteRequest(Irp, IO_NO_INCREMENT);
