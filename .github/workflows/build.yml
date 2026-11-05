@@ -15,9 +15,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup MSBuild
-        uses: microsoft/setup-msbuild@v2
-
       - name: Setup MSVC developer environment
         uses: ilammy/msvc-dev-cmd@v1
         with:
@@ -31,9 +28,71 @@ jobs:
         run: |
           cl /std:c++20 /O2 /EHsc trigger.cpp /link user32.lib gdi32.lib comctl32.lib /SUBSYSTEM:WINDOWS /ENTRY:WinMainCRTStartup /OUT:trigger.exe
 
-      - name: Build Kernel Driver
+      - name: Discover WDK NuGet paths
+        id: wdk
+        shell: pwsh
         run: |
-          msbuild Driver.vcxproj /p:Configuration=Release /p:Platform=x64 /p:SignMode=Off /p:WindowsTargetPlatformVersion=10.0 /p:WindowsSDKInstalled=true /p:WindowsSDK_Desktop_Support=true
+          $wdkPkg = Get-ChildItem -Directory "packages" -Filter "Microsoft.Windows.WDK.x64.*" | Select-Object -First 1
+          $sdkPkg = Get-ChildItem -Directory "packages" -Filter "Microsoft.Windows.SDK.CPP.x64.*" | Select-Object -First 1
+          $sdkBase = Get-ChildItem -Directory "packages" -Filter "Microsoft.Windows.SDK.CPP.10*" | Select-Object -First 1
+
+          $kitVer = (Get-ChildItem -Directory "$($wdkPkg.FullName)\c\Include" | Select-Object -First 1).Name
+          Write-Host "WDK package: $($wdkPkg.Name)"
+          Write-Host "SDK CPP x64 package: $($sdkPkg.Name)"
+          Write-Host "SDK CPP base package: $($sdkBase.Name)"
+          Write-Host "Kit version: $kitVer"
+
+          $wdkRoot = $wdkPkg.FullName
+          $sdkRoot = $sdkPkg.FullName
+          $sdkBaseRoot = $sdkBase.FullName
+
+          echo "WDK_ROOT=$wdkRoot" >> $env:GITHUB_OUTPUT
+          echo "SDK_ROOT=$sdkRoot" >> $env:GITHUB_OUTPUT
+          echo "SDK_BASE_ROOT=$sdkBaseRoot" >> $env:GITHUB_OUTPUT
+          echo "KIT_VER=$kitVer" >> $env:GITHUB_OUTPUT
+
+      - name: Build Kernel Driver
+        shell: pwsh
+        run: |
+          $wdk = "${{ steps.wdk.outputs.WDK_ROOT }}"
+          $sdk = "${{ steps.wdk.outputs.SDK_ROOT }}"
+          $sdkBase = "${{ steps.wdk.outputs.SDK_BASE_ROOT }}"
+          $v = "${{ steps.wdk.outputs.KIT_VER }}"
+
+          $incKm     = "$wdk\c\Include\$v\km"
+          $incKmCrt  = "$wdk\c\Include\$v\km\crt"
+          $incShared = "$wdk\c\Include\$v\shared"
+          $incUcrt   = "$sdkBase\c\Include\$v\ucrt"
+          $incSdkSh  = "$sdkBase\c\Include\$v\shared"
+          $libKm     = "$wdk\c\Lib\$v\km\x64"
+
+          Write-Host "--- Include paths ---"
+          Write-Host "km:      $incKm"
+          Write-Host "km\crt:  $incKmCrt"
+          Write-Host "shared:  $incShared"
+          Write-Host "ucrt:    $incUcrt"
+          Write-Host "sdk sh:  $incSdkSh"
+          Write-Host "lib km:  $libKm"
+          Write-Host ""
+
+          # Verify ntddk.h exists
+          if (Test-Path "$incKm\ntddk.h") {
+            Write-Host "[OK] ntddk.h found at $incKm\ntddk.h"
+          } else {
+            Write-Host "[WARN] ntddk.h NOT found at $incKm\ntddk.h"
+            Write-Host "Searching for ntddk.h in WDK package..."
+            Get-ChildItem -Recurse "$wdk" -Filter "ntddk.h" | ForEach-Object { Write-Host $_.FullName }
+          }
+
+          cl /c /O2 /D_AMD64_ /D_WIN64 /DNDEBUG /GS- /W3 /Zl /kernel /nologo `
+            /X `
+            "-I$incKm" "-I$incKmCrt" "-I$incShared" "-I$incSdkSh" "-I$incUcrt" `
+            driver.c /Fo:driver.obj
+
+          link /DRIVER /SUBSYSTEM:NATIVE /ENTRY:DriverEntry /NODEFAULTLIB /nologo `
+            /OUT:Driver.sys `
+            "-LIBPATH:$libKm" `
+            driver.obj ntoskrnl.lib hal.lib BufferOverflowK.lib
 
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
@@ -41,5 +100,5 @@ jobs:
           name: build-output
           path: |
             trigger.exe
-            x64/Release/Driver/Driver.sys
+            Driver.sys
           if-no-files-found: warn
