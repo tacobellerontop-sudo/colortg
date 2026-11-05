@@ -42,3 +42,23 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>MaxSpeed</Optimization>
       <PreprocessorDefinitions>NDEBUG;_AMD64_;_WIN64;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(MSBuildThisFileDirectory)packages\Microsoft.Windows.WDK.x64.10.0.26100.2454\build\native\include\km;$(MSBuildThisFileDirectory)packages\Microsoft.Windows.WDK.x64.10.0.26100.2454\build\native\include\shared;$(MSBuildThisFileDirectory)packages\Microsoft.Windows.SDK.CPP.x64.10.0.26100.2454\build\native\include\shared;$(MSBuildThisFileDirectory)packages\Microsoft.Windows.SDK.CPP.x64.10.0.26100.2454\build\native\include\ucrt;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <EntryPointSymbol>DriverEntry</EntryPointSymbol>
+      <AdditionalLibraryDirectories>$(MSBuildThisFileDirectory)packages\Microsoft.Windows.WDK.x64.10.0.26100.2454\build\native\lib\km\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>ntoskrnl.lib;hal.lib;BufferOverflowK.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="driver.c" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <Target Name="_CheckWindowsSDKInstalled">
+    <PropertyGroup>
+      <WindowsSDKInstalled>true</WindowsSDKInstalled>
+      <WindowsSDK_Desktop_Support>true</WindowsSDK_Desktop_Support>
+      <WindowsSDK_UAP_Support>true</WindowsSDK_UAP_Support>
+    </PropertyGroup>
+  </Target>
+</Project>
