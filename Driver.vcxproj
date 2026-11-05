@@ -15,6 +15,8 @@
     <DriverType>WDM</DriverType>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
     <WindowsSDKInstalled>true</WindowsSDKInstalled>
+    <WindowsSDK_Desktop_Support>true</WindowsSDK_Desktop_Support>
+    <WindowsSDK_UAP_Support>true</WindowsSDK_UAP_Support>
     <SignMode>Off</SignMode>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -40,13 +42,3 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>MaxSpeed</Optimization>
       <PreprocessorDefinitions>NDEBUG;_AMD64_;_WIN64;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-    </ClCompile>
-    <Link>
-      <EntryPointSymbol>DriverEntry</EntryPointSymbol>
-    </Link>
-  </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClCompile Include="driver.c" />
-  </ItemGroup>
-  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
-</Project>
