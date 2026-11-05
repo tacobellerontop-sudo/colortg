@@ -1,4 +1,11 @@
 <Project>
+  <Target Name="_CheckWindowsSDKInstalled">
+    <PropertyGroup>
+      <WindowsSDKInstalled>true</WindowsSDKInstalled>
+      <WindowsSDK_Desktop_Support>true</WindowsSDK_Desktop_Support>
+      <WindowsSDK_UAP_Support>true</WindowsSDK_UAP_Support>
+    </PropertyGroup>
+  </Target>
   <Import Project="$(MSBuildThisFileDirectory)packages\Microsoft.Windows.WDK.x64.*\build\native\Microsoft.Windows.WDK.x64.targets" 
           Condition="'$(Platform)' == 'x64'" />
 </Project>
